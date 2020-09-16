@@ -17,35 +17,34 @@ smoke_stats <- SmkEffects(
   two_arms = TRUE)
 
 # To calculate the number of interventions given
-# Select just the control arm
-smoke_stats_control <- smoke_stats[arm == "control"]
+smoke_stats_int <- smoke_stats[arm == "intervention"]
 
 # The characteristics of the intervention are described in the code file '30_run_simulation.R'
 
 # 90% of smokers aged 55-74 years old were offered the intervention from 2010 to 2015
-smoke_stats_control[ , offered_intervention := 0]
-smoke_stats_control[year %in% 2010:2015 & age %in% 55:74, offered_intervention := n_smokers * 0.9]
+smoke_stats_int[ , offered_intervention := 0]
+smoke_stats_int[year %in% 2010:2015 & age %in% 55:74, offered_intervention := n_smokers * 0.9]
 
 # Total number of interventions given
-sum(smoke_stats_control$offered_intervention)
+sum(smoke_stats_int$offered_intervention)
 
 # By IMD quintile
-smoke_stats_control[ , .(n_offered = sum(offered_intervention)), by = c("imd_quintile")]
+smoke_stats_int[ , .(n_offered = sum(offered_intervention)), by = c("imd_quintile")]
 
 # Note that in this simple intervention scenario,
 # the same smoker could have been offered the intervention once in each year
 
 # 75% of smokers who were offered the intervenion accepted it
-smoke_stats_control[ , accepted_intervention := offered_intervention * 0.75]
+smoke_stats_int[ , accepted_intervention := offered_intervention * 0.75]
 
 # Total number of interventions accepted
-sum(smoke_stats_control$accepted_intervention)
+sum(smoke_stats_int$accepted_intervention)
 
 # By IMD quintile
-smoke_stats_control[ , .(n_accepted = sum(accepted_intervention)), by = c("imd_quintile")]
+smoke_stats_int[ , .(n_accepted = sum(accepted_intervention)), by = c("imd_quintile")]
 
 # By IMD quintile and year
-n_accepted_year_imd <- smoke_stats_control[ , .(n_accepted = sum(accepted_intervention)), by = c("imd_quintile", "year")]
+n_accepted_year_imd <- smoke_stats_int[ , .(n_accepted = sum(accepted_intervention)), by = c("imd_quintile", "year")]
 
 # Plot interventions accepted
 png("output/interventions_accepted_year_imd.png", units="in", width=7, height=7, res=300)
@@ -67,11 +66,11 @@ dev.off()
 # Assume that each intervention cost £30
 
 # Calculate cost of the interventions that were accepted
-smoke_stats_control[ , intervention_cost := 30 * accepted_intervention]
+smoke_stats_int[ , intervention_cost := 30 * accepted_intervention]
 
-# Calculate the cumulative cost over years
+# Calculate the cumulative cost over years 
 # stratified by IMD quintile 
-cost_year_imd <- smoke_stats_control[ , .(intervention_cost = sum(intervention_cost)), by = c("imd_quintile", "year")]
+cost_year_imd <- smoke_stats_int[ , .(intervention_cost = sum(intervention_cost)), by = c("imd_quintile", "year")]
 
 cost_year_imd[ , cum_intervention_cost := cumsum(intervention_cost), by = "imd_quintile"]
 
